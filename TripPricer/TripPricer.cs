@@ -17,7 +17,8 @@ public class TripPricer
         // Sleep to simulate some latency
         Thread.Sleep(ThreadLocalRandom.Current.Next(1, 50));
 
-        for (int i = 0; i < 5; i++)
+
+        for (int i = 0; i < 10; i++)//5
         {
             int multiple = ThreadLocalRandom.Current.Next(100, 700);
             double childrenDiscount = children / 3.0;
@@ -28,10 +29,18 @@ public class TripPricer
                 price = 0.0;
             }
 
+            int attempts = 0;
+            int maxAttempts = 1000;//security
             string provider;
             do
             {
                 provider = GetProviderName(apiKey, adults);
+
+                attempts++;
+                if (attempts >= maxAttempts)//adding for security
+                {
+                    throw new Exception("Impossible de trouver un fournisseur unique après plusieurs essais.");
+                }
             } while (providersUsed.Contains(provider));
 
             providersUsed.Add(provider);
@@ -42,7 +51,7 @@ public class TripPricer
 
     public string GetProviderName(string apiKey, int adults)
     {
-        int multiple = ThreadLocalRandom.Current.Next(1, 10);
+        int multiple = ThreadLocalRandom.Current.Next(1, 11);//Change from Next(1, 10);
 
         return multiple switch
         {
