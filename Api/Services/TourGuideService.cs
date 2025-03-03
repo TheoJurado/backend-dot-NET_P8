@@ -86,28 +86,40 @@ public class TourGuideService : ITourGuideService
     {
         VisitedLocation visitedLocation = _gpsUtil.GetUserLocation(user.UserId);
         user.AddToVisitedLocations(visitedLocation);
-        _rewardsService.CalculateRewards(user);
+        //_rewardsService.CalculateRewards(user);
+        Task.Run(async () => await _rewardsService.CalculateRewards(user)).Wait();
         return visitedLocation;
     }
 
-    public List<Attraction> GetNearByAttractions(VisitedLocation visitedLocation)
+    public async Task<List<Attraction>> GetNearByAttractions(VisitedLocation visitedLocation, int maxAttraction)
     {
-        List<Attraction> nearbyAttractions = new();
-        int LimiteExtender = 0;
-        do
-        {
-            foreach (var attraction in _gpsUtil.GetAttractions())
-            {
-                if (_rewardsService.IsWithinAttractionProximity(attraction, visitedLocation.Location, LimiteExtender))
-                {
-                    nearbyAttractions.Add(attraction);
-                }
-            }
-            LimiteExtender += 20;//Trier les attractions par distances
-        } while (nearbyAttractions.Count < 5);
+        //get all attraction order by distance from user
+        var sortedAttractions = await GetSortedAttractionsByDistance(visitedLocation);
 
-        return nearbyAttractions;
+        //select only the 5 neerest attraction
+        var topAttractions = GetTopAttractions(sortedAttractions, maxAttraction);
+
+        return topAttractions;
     }
+
+    #region new
+    private async Task<List<(Attraction Attraction, double Distance)>> GetSortedAttractionsByDistance(VisitedLocation visitedLocation)
+    {
+        var attractions = await _gpsUtil.GetAttractionsAsync();
+
+        return attractions
+            .Select(attraction => (Attraction: attraction, Distance: _rewardsService.GetDistance(attraction, visitedLocation.Location)))
+            .OrderBy(a => a.Distance)
+            .ToList();
+    }
+    private List<Attraction> GetTopAttractions(List<(Attraction Attraction, double Distance)> sortedAttractions, int count)
+    {
+        return sortedAttractions
+            .Take(count)
+            .Select(a => a.Attraction)
+            .ToList();
+    }
+    #endregion
 
     private void AddShutDownHook()
     {

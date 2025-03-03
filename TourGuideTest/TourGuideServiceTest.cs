@@ -1,6 +1,7 @@
 ﻿using GpsUtil.Location;
 using System;
 using System.Collections.Generic;
+using System.Collections.Specialized;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -86,17 +87,19 @@ namespace TourGuideTest
         }
 
         [Fact]//(Skip = "Not yet implemented")
-        public void GetNearbyAttractions()
+        public async Task GetNearbyAttractions()
         {
+            int nbTest = 5;
+
             _fixture.Initialize(0);
             var user = new User(Guid.NewGuid(), "jon", "000", "jon@tourGuide.com");
             var visitedLocation = _fixture.TourGuideService.TrackUserLocation(user);
 
-            List<Attraction> attractions = _fixture.TourGuideService.GetNearByAttractions(visitedLocation);
+            List<Attraction> attractions = await _fixture.TourGuideService.GetNearByAttractions(visitedLocation, nbTest);
 
             _fixture.TourGuideService.Tracker.StopTracking();
 
-            Assert.InRange(attractions.Count, 5, 100);//Change from Assert.Equal(5, attractions.Count);
+            Assert.Equal(nbTest, attractions.Count);
         }
 
         [Fact]

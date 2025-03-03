@@ -17,8 +17,8 @@ public class GpsUtilWrapper : IGpsUtil
         return _gpsUtil.GetUserLocation(userId);
     }
 
-    public List<Attraction> GetAttractions()
+    public async Task<List<Attraction>> GetAttractionsAsync()
     {
-        return _gpsUtil.GetAttractions();
+        return await _gpsUtil.GetAttractions();
     }
 }

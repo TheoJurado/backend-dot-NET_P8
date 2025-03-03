@@ -12,13 +12,15 @@ public class TripPricer
     public List<Provider> GetPrice(string apiKey, Guid attractionId, int adults, int children, int nightsStay, int rewardsPoints)
     {
         List<Provider> providers = new List<Provider>();
-        HashSet<string> providersUsed = new HashSet<string>();
+        //HashSet<string> providersUsed = new HashSet<string>();
 
         // Sleep to simulate some latency
         Thread.Sleep(ThreadLocalRandom.Current.Next(1, 50));
 
+        //get all provider and randomize
+        var providerNames = GetAllProviderNames().OrderBy(_ => ThreadLocalRandom.Current.Next()).Take(10).ToList();
 
-        for (int i = 0; i < 10; i++)//5
+        for (int i = 0; i < providerNames.Count; i++)//i < 10 //i < 5
         {
             int multiple = ThreadLocalRandom.Current.Next(100, 700);
             double childrenDiscount = children / 3.0;
@@ -29,22 +31,14 @@ public class TripPricer
                 price = 0.0;
             }
 
-            int attempts = 0;
-            int maxAttempts = 1000;//security
-            string provider;
-            do
+            //string provider;
+            /*do
             {
                 provider = GetProviderName(apiKey, adults);
+            } while (providersUsed.Contains(provider));*/
 
-                attempts++;
-                if (attempts >= maxAttempts)//adding for security
-                {
-                    throw new Exception("Impossible de trouver un fournisseur unique après plusieurs essais.");
-                }
-            } while (providersUsed.Contains(provider));
-
-            providersUsed.Add(provider);
-            providers.Add(new Provider(attractionId, provider, price));
+            //providersUsed.Add(provider);
+            providers.Add(new Provider(attractionId, providerNames[i], price));//(attractionId, provider, price)
         }
         return providers;
     }
@@ -66,5 +60,22 @@ public class TripPricer
             9 => "AdventureCo",
             _ => "Cure-Your-Blues",
         };        
+    }
+
+    private static List<string> GetAllProviderNames()
+    {
+        return new List<string>
+        {
+            "Holiday Travels",
+            "Enterprize Ventures Limited",
+            "Sunny Days",
+            "FlyAway Trips",
+            "United Partners Vacations",
+            "Dream Trips",
+            "Live Free",
+            "Dancing Waves Cruselines and Partners",
+            "AdventureCo",
+            "Cure-Your-Blues"
+        };
     }
 }
