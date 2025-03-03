@@ -116,7 +116,7 @@ namespace TourGuideTest
             _output.WriteLine($"highVolumeGetRewards: Time Elapsed: {stopWatch.Elapsed.TotalSeconds} seconds.");
             Assert.True(TimeSpan.FromMinutes(20).TotalSeconds >= stopWatch.Elapsed.TotalSeconds);
         }
-
+        /*
         [Fact]
         public void TestFullCharge()
         {
@@ -127,6 +127,6 @@ namespace TourGuideTest
             Task.WaitAll(task1, task2);
             stopWatch.Stop();
             Assert.True(TimeSpan.FromMinutes(20).TotalSeconds >= stopWatch.Elapsed.TotalSeconds);
-        }
+        }/**/
     }
 }

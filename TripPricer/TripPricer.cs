@@ -12,15 +12,15 @@ public class TripPricer
     public List<Provider> GetPrice(string apiKey, Guid attractionId, int adults, int children, int nightsStay, int rewardsPoints)
     {
         List<Provider> providers = new List<Provider>();
-        //HashSet<string> providersUsed = new HashSet<string>();
+        HashSet<string> providersUsed = new HashSet<string>();// //
 
         // Sleep to simulate some latency
         Thread.Sleep(ThreadLocalRandom.Current.Next(1, 50));
 
         //get all provider and randomize
-        var providerNames = GetAllProviderNames().OrderBy(_ => ThreadLocalRandom.Current.Next()).Take(10).ToList();
+        //var providerNames = GetAllProviderNames().OrderBy(_ => ThreadLocalRandom.Current.Next()).Take(10).ToList();
 
-        for (int i = 0; i < providerNames.Count; i++)//i < 10 //i < 5
+        for (int i = 0; i < 10; i++)//providerNames.Count //i < 5
         {
             int multiple = ThreadLocalRandom.Current.Next(100, 700);
             double childrenDiscount = children / 3.0;
@@ -30,15 +30,15 @@ public class TripPricer
             {
                 price = 0.0;
             }
-
-            //string provider;
-            /*do
+            // /*
+            string provider;
+            do
             {
                 provider = GetProviderName(apiKey, adults);
-            } while (providersUsed.Contains(provider));*/
+            } while (providersUsed.Contains(provider));
 
-            //providersUsed.Add(provider);
-            providers.Add(new Provider(attractionId, providerNames[i], price));//(attractionId, provider, price)
+            providersUsed.Add(provider);// */
+            providers.Add(new Provider(attractionId, provider, price));//(attractionId, providerNames[i], price)
         }
         return providers;
     }
