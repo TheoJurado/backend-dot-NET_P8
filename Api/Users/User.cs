@@ -1,4 +1,5 @@
 ﻿using GpsUtil.Location;
+using System.Collections.Concurrent;
 using TripPricer;
 
 namespace TourGuide.Users;
@@ -11,7 +12,8 @@ public class User
     public string EmailAddress { get; set; }
     public DateTime LatestLocationTimestamp { get; set; }
     public List<VisitedLocation> VisitedLocations { get; } = new List<VisitedLocation>();
-    public List<UserReward> UserRewards { get; } = new List<UserReward>();
+    public ConcurrentDictionary<string, UserReward> UserRewards { get; } = new ConcurrentDictionary<string, UserReward>();
+    //public List<UserReward> UserRewards { get; } = new List<UserReward>();
     public UserPreferences UserPreferences { get; set; } = new UserPreferences();
     public List<Provider> TripDeals { get; set; } = new List<Provider>();
 
@@ -35,9 +37,10 @@ public class User
 
     public void AddUserReward(UserReward userReward)
     {
-        if (!UserRewards.Exists(r => r.Attraction.AttractionName == userReward.Attraction.AttractionName))
+        //if (!UserRewards.Exists(r => r.Attraction.AttractionName == userReward.Attraction.AttractionName))
         {
-            UserRewards.Add(userReward);
+            //UserRewards.Add(userReward);
+            UserRewards.TryAdd(userReward.Attraction.AttractionName, userReward);
         }
     }
 

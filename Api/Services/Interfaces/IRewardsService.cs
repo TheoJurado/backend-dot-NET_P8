@@ -5,9 +5,9 @@ namespace TourGuide.Services.Interfaces
 {
     public interface IRewardsService
     {
-        void CalculateRewards(User user);
+        Task CalculateRewardsAsync(User user);
         double GetDistance(Locations loc1, Locations loc2);
-        bool IsWithinAttractionProximity(Attraction attraction, Locations location);
+        bool IsWithinAttractionProximity(Attraction attraction, Locations location, int extendedRange = 0);
         void SetDefaultProximityBuffer();
         void SetProximityBuffer(int proximityBuffer);
     }
