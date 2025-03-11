@@ -47,13 +47,10 @@ public class RewardsService : IRewardsService
         //check if reward already added
         ConcurrentDictionary<string, bool> existingRewardsDict = new ConcurrentDictionary<string, bool>();
 
-
-        var lockObj = new object();
         ParallelOptions parallelOptions = new ParallelOptions { MaxDegreeOfParallelism = Environment.ProcessorCount };
         await Parallel.ForEachAsync(userLocations, parallelOptions, async (visitedLocation, T) =>
         {
             var nearbyAttractions = attractions//new
-                .Where(attraction => !existingRewardsDict.ContainsKey(attraction.AttractionName))
                 .Where(attraction => NearAttraction(visitedLocation, attraction)) // only get interesting attractions
                 .ToList();
 
