@@ -1,5 +1,7 @@
 ﻿using GpsUtil.Location;
 using System.Collections.Concurrent;
+using System.Linq;
+using System.Runtime.CompilerServices;
 using TourGuide.LibrairiesWrappers.Interfaces;
 using TourGuide.Services.Interfaces;
 using TourGuide.Users;
@@ -36,39 +38,35 @@ public class RewardsService : IRewardsService
         _proximityBuffer = _defaultProximityBuffer;
     }
 
-    public async Task CalculateRewards(User user, List<Attraction> attractions = null)
+    public async Task CalculateRewardsAsync(User user)
     {
         count++;
         List<VisitedLocation> userLocations = user.VisitedLocations.ToList();
-        if (attractions == null)//new
-            attractions = await _gpsUtil.GetAttractionsAsync();
+        var attractions = _gpsUtil.GetAttractions();
 
-        var existingRewards = new HashSet<string>(user.UserRewards.Select(r => r.Attraction.AttractionName));//new
+        //check if reward already added
+        ConcurrentDictionary<string, bool> existingRewardsDict = new ConcurrentDictionary<string, bool>();
 
-        var tasks = new List<Task>();
 
-        foreach (var visitedLocation in userLocations)
+        var lockObj = new object();
+        ParallelOptions parallelOptions = new ParallelOptions { MaxDegreeOfParallelism = Environment.ProcessorCount };
+        await Parallel.ForEachAsync(userLocations, parallelOptions, async (visitedLocation, T) =>
         {
             var nearbyAttractions = attractions//new
-                .Where(attraction => NearAttraction(visitedLocation, attraction)) // Première passe sur les distances
+                .Where(attraction => !existingRewardsDict.ContainsKey(attraction.AttractionName))
+                .Where(attraction => NearAttraction(visitedLocation, attraction)) // only get interesting attractions
                 .ToList();
 
             foreach (var attraction in nearbyAttractions)
             {
-                //if (!user.UserRewards.Any(r => r.Attraction.AttractionName == attraction.AttractionName)) old
-                if (!existingRewards.Contains(attraction.AttractionName))
+                int rewardPoints = await GetRewardPointsAsync(attraction, user);
+
+                if (existingRewardsDict.TryAdd(attraction.AttractionName, true))
                 {
-                    //if (NearAttraction(visitedLocation, attraction)) old
-                    tasks.Add(Task.Run(() =>
-                    {
-                        user.AddUserReward(new UserReward(visitedLocation, attraction, GetRewardPoints(attraction, user)));
-                        existingRewards.Add(attraction.AttractionName);//new
-                    }));
+                    user.AddUserReward(new UserReward(visitedLocation, attraction, rewardPoints));
                 }
             }
-        }
-
-        await Task.WhenAll(tasks);
+        });
     }
 
     public bool IsWithinAttractionProximity(Attraction attraction, Locations location, int extendeRange = 0)
@@ -85,6 +83,10 @@ public class RewardsService : IRewardsService
     private int GetRewardPoints(Attraction attraction, User user)
     {
         return _rewardsCentral.GetAttractionRewardPoints(attraction.AttractionId, user.UserId);
+    }
+    private async Task<int> GetRewardPointsAsync(Attraction attraction, User user)
+    {
+        return await _rewardsCentral.GetAttractionRewardPointsAsync(attraction.AttractionId, user.UserId);
     }
 
     public double GetDistance(Locations loc1, Locations loc2)

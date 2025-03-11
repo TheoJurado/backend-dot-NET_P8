@@ -35,15 +35,13 @@ public class GpsUtil
         }
     }
 
-    public async Task<List<Attraction>> GetAttractions()
+    public List<Attraction> GetAttractions()
     {
-        //rateLimiter.Wait();
-        await rateLimiter.WaitAsync();
+        rateLimiter.Wait();
 
         try
         {
-            //SleepLighter();
-            await SleepLighterAsync();
+            SleepLighter();
 
             List<Attraction> attractions = new()
         {
@@ -89,13 +87,8 @@ public class GpsUtil
         Thread.Sleep(delay);
     }
 
-    private void SleepLighter()//old
+    private void SleepLighter()
     {
         Thread.Sleep(10);
-    }
-
-    private async Task SleepLighterAsync()//new
-    {
-        await Task.Delay(10);
     }
 }

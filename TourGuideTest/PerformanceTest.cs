@@ -1,4 +1,5 @@
 ﻿using GpsUtil.Location;
+using Microsoft.OpenApi.Validations;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -46,7 +47,7 @@ namespace TourGuideTest
         }
 
         [Fact]//(Skip = ("Delete Skip when you want to pass the test"))
-        public void HighVolumeTrackLocation()
+        public async Task HighVolumeTrackLocation()
         {
             //On peut ici augmenter le nombre d'utilisateurs pour tester les performances
             _fixture.Initialize(1000);
@@ -56,21 +57,14 @@ namespace TourGuideTest
             Stopwatch stopWatch = new Stopwatch();
             stopWatch.Start();
 
-            /*
+            var allTasks = new List<Task>();//new
             foreach (var user in allUsers)
             {
-                _fixture.TourGuideService.TrackUserLocation(user);
-            }/**/
-            /*
-            Parallel.ForEach(allUsers, user =>
-            {
-                _fixture.TourGuideService.TrackUserLocation(user);
-            });/**/
-            var partitioner = Partitioner.Create(allUsers, true);
-            Parallel.ForEach(partitioner, new ParallelOptions { MaxDegreeOfParallelism = Environment.ProcessorCount }, user =>
-            {
-                _fixture.TourGuideService.TrackUserLocation(user);
-            });
+                //_fixture.TourGuideService.TrackUserLocation(user);//old
+                allTasks.Add(_fixture.TourGuideService.TrackUserLocationAsync(user));//new
+            }
+            await Task.WhenAll(allTasks);//new
+
             stopWatch.Stop();
             _fixture.TourGuideService.Tracker.StopTracking();
 
@@ -83,32 +77,26 @@ namespace TourGuideTest
         public async Task HighVolumeGetRewards()
         {
             //On peut ici augmenter le nombre d'utilisateurs pour tester les performances
-            _fixture.Initialize(100);
+            _fixture.Initialize(10000);
 
             Stopwatch stopWatch = new Stopwatch();
             stopWatch.Start();
 
-            List<Attraction> attractionsCache = await _fixture.GpsUtil.GetAttractionsAsync();//new
-            //Attraction attraction = _fixture.GpsUtil.GetAttractions()[0];
+            Attraction attraction = _fixture.GpsUtil.GetAttractions()[0];
             List<User> allUsers = _fixture.TourGuideService.GetAllUsers();
 
-            allUsers.ForEach(u => u.AddToVisitedLocations(new VisitedLocation(u.UserId, attractionsCache[0], DateTime.Now)));
-            /*var tasks = allUsers.Select(user =>
-                Task.Run(() =>
-                {
-                    user.AddToVisitedLocations(new VisitedLocation(user.UserId, attractionsCache[0], DateTime.Now));
-                })
-            );
-            await Task.WhenAll(tasks);/**/
+            allUsers.ForEach(u => u.AddToVisitedLocations(new VisitedLocation(u.UserId, attraction, DateTime.Now)));
 
-            var rewardTasks = allUsers.Select(user => Task.Run(() => _fixture.RewardsService.CalculateRewards(user, attractionsCache)));
-            await Task.WhenAll(rewardTasks);
+            //allUsers.ForEach(u => _fixture.RewardsService.CalculateRewards(u)); //old
+            var rewardTasks = allUsers.Select(user => _fixture.RewardsService.CalculateRewardsAsync(user));
+            await Task.WhenAll(rewardTasks);/**/
+            /*ParallelOptions parallelOptions = new ParallelOptions { MaxDegreeOfParallelism = Environment.ProcessorCount };
+            await Parallel.ForEachAsync(allUsers, parallelOptions, async (u,T) => await _fixture.RewardsService.CalculateRewardsAsync(u));/**/
 
-            /*foreach (var user in allUsers) old
+            foreach (var user in allUsers)
             {
                 Assert.True(user.UserRewards.Count > 0);
-            }/**/
-            Assert.All(allUsers, u => Assert.True(u.UserRewards.Count > 0));
+            }
 
             stopWatch.Stop();
             _fixture.TourGuideService.Tracker.StopTracking();
@@ -116,17 +104,5 @@ namespace TourGuideTest
             _output.WriteLine($"highVolumeGetRewards: Time Elapsed: {stopWatch.Elapsed.TotalSeconds} seconds.");
             Assert.True(TimeSpan.FromMinutes(20).TotalSeconds >= stopWatch.Elapsed.TotalSeconds);
         }
-        /*
-        [Fact]
-        public void TestFullCharge()
-        {
-            Stopwatch stopWatch = new Stopwatch();
-            stopWatch.Start();
-            var task1 = Task.Run(HighVolumeTrackLocation);
-            var task2 = Task.Run(HighVolumeGetRewards);
-            Task.WaitAll(task1, task2);
-            stopWatch.Stop();
-            Assert.True(TimeSpan.FromMinutes(20).TotalSeconds >= stopWatch.Elapsed.TotalSeconds);
-        }/**/
     }
 }
