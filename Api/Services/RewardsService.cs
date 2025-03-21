@@ -42,13 +42,12 @@ public class RewardsService : IRewardsService
     {
         count++;
         List<VisitedLocation> userLocations = user.VisitedLocations.ToList();
-        var attractions = _gpsUtil.GetAttractions();
-
+        var attractions = await _gpsUtil.GetAttractionsAsync();
+        
         //check if reward already added
         ConcurrentDictionary<string, bool> existingRewardsDict = new ConcurrentDictionary<string, bool>();
 
-        ParallelOptions parallelOptions = new ParallelOptions { MaxDegreeOfParallelism = Environment.ProcessorCount };
-        await Parallel.ForEachAsync(userLocations, parallelOptions, async (visitedLocation, T) =>
+        foreach(var visitedLocation in userLocations)
         {
             var nearbyAttractions = attractions//new
                 .Where(attraction => NearAttraction(visitedLocation, attraction)) // only get interesting attractions
@@ -63,7 +62,7 @@ public class RewardsService : IRewardsService
                     user.AddUserReward(new UserReward(visitedLocation, attraction, rewardPoints));
                 }
             }
-        });
+        };
     }
 
     public bool IsWithinAttractionProximity(Attraction attraction, Locations location, int extendeRange = 0)

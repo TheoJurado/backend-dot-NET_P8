@@ -4,7 +4,7 @@ namespace TourGuide.LibrairiesWrappers.Interfaces
 {
     public interface IGpsUtil
     {
-        VisitedLocation GetUserLocation(Guid userId);
-        List<Attraction> GetAttractions();
+        Task<VisitedLocation> GetUserLocation(Guid userId);
+        Task<List<Attraction>> GetAttractionsAsync();
     }
 }
