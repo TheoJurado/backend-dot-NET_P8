@@ -36,7 +36,8 @@ public class Tracker
 
             stopwatch.Start();
 
-            users.ForEach(u => _tourGuideService.TrackUserLocationAsync(u));
+            //users.ForEach(u => _tourGuideService.TrackUserLocationAsync(u));
+            await Task.WhenAll(users.Select(u => _tourGuideService.TrackUserLocationAsync(u)));//new
 
             stopwatch.Stop();
 

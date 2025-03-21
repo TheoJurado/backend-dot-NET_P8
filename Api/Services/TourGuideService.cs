@@ -85,17 +85,17 @@ public class TourGuideService : ITourGuideService
 
     public async Task<VisitedLocation> TrackUserLocationAsync(User user)
     {
-        VisitedLocation visitedLocation = await Task.Run(() => _gpsUtil.GetUserLocation(user.UserId));
+        VisitedLocation visitedLocation = await _gpsUtil.GetUserLocation(user.UserId);
         user.AddToVisitedLocations(visitedLocation);
         //_rewardsService.CalculateRewards(user);
         await _rewardsService.CalculateRewardsAsync(user);
         return visitedLocation;
     }
 
-    public List<Attraction> GetNearByAttractions(VisitedLocation visitedLocation, int maxAttraction)
+    public async Task<List<Attraction>> GetNearByAttractionsAsync(VisitedLocation visitedLocation, int maxAttraction)
     {
         //get all attraction order by distance from user
-        var sortedAttractions = GetSortedAttractionsByDistance(visitedLocation);
+        var sortedAttractions = await GetSortedAttractionsByDistanceAsync(visitedLocation);
 
         //select only the 5 neerest attraction
         var topAttractions = GetTopAttractions(sortedAttractions, maxAttraction);
@@ -104,9 +104,9 @@ public class TourGuideService : ITourGuideService
     }
 
     #region new
-    private List<(Attraction Attraction, double Distance)> GetSortedAttractionsByDistance(VisitedLocation visitedLocation)
+    private async Task<List<(Attraction Attraction, double Distance)>> GetSortedAttractionsByDistanceAsync(VisitedLocation visitedLocation)
     {
-        var attractions = _gpsUtil.GetAttractions();
+        var attractions = await _gpsUtil.GetAttractionsAsync();
 
         return attractions
             .Select(attraction => (Attraction: attraction, Distance: _rewardsService.GetDistance(attraction, visitedLocation.Location)))

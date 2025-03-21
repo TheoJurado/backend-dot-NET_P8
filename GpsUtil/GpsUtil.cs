@@ -12,12 +12,12 @@ public class GpsUtil
 {
     private static readonly SemaphoreSlim rateLimiter = new(1000, 1000);
 
-    public VisitedLocation GetUserLocation(Guid userId)
+    public async Task<VisitedLocation> GetUserLocation(Guid userId)
     {
-        rateLimiter.Wait();
+        await rateLimiter.WaitAsync();
         try
         {
-            Sleep();
+            await SleepAsync();
 
             double longitude = ThreadLocalRandom.NextDouble(-180.0, 180.0);
             longitude = Math.Round(longitude, 6);
@@ -35,13 +35,13 @@ public class GpsUtil
         }
     }
 
-    public List<Attraction> GetAttractions()
+    public async Task<List<Attraction>> GetAttractionsAsync()
     {
-        rateLimiter.Wait();
+        await rateLimiter.WaitAsync();
 
         try
         {
-            SleepLighter();
+            await SleepLighterAsync();
 
             List<Attraction> attractions = new()
         {
@@ -86,9 +86,18 @@ public class GpsUtil
         int delay = ThreadLocalRandom.Current.Next(30, 100);
         Thread.Sleep(delay);
     }
+    private async Task SleepAsync()
+    {
+        int delay = ThreadLocalRandom.Current.Next(30, 100);
+        await Task.Delay(delay);
+    }
 
     private void SleepLighter()
     {
         Thread.Sleep(10);
+    }
+    private async Task SleepLighterAsync()
+    {
+        await Task.Delay(10);
     }
 }

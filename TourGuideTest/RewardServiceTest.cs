@@ -23,7 +23,7 @@ public class RewardServiceTest : IClassFixture<DependencyFixture>
     {
         _fixture.Initialize(0);
         var user = new User(Guid.NewGuid(), "jon", "000", "jon@tourGuide.com");
-        var attraction = _fixture.GpsUtil.GetAttractions().First();
+        var attraction = (await _fixture.GpsUtil.GetAttractionsAsync()).First();
 
         user.AddToVisitedLocations(new VisitedLocation(user.UserId, attraction, DateTime.Now));
         await _fixture.TourGuideService.TrackUserLocationAsync(user);
@@ -33,9 +33,9 @@ public class RewardServiceTest : IClassFixture<DependencyFixture>
     }
 
     [Fact]
-    public void IsWithinAttractionProximity()
+    public async Task IsWithinAttractionProximity()
     {
-        var attraction = _fixture.GpsUtil.GetAttractions().First();
+        var attraction = (await _fixture.GpsUtil.GetAttractionsAsync()).First();
 
         Assert.True(_fixture.RewardsService.IsWithinAttractionProximity(attraction, attraction));
     }
@@ -51,7 +51,7 @@ public class RewardServiceTest : IClassFixture<DependencyFixture>
         var userRewards = _fixture.TourGuideService.GetUserRewards(user);
         _fixture.TourGuideService.Tracker.StopTracking();
 
-        Assert.Equal(_fixture.GpsUtil.GetAttractions().Count, userRewards.Count);
+        Assert.Equal((await _fixture.GpsUtil.GetAttractionsAsync()).Count, userRewards.Count);
     }
 
 }
