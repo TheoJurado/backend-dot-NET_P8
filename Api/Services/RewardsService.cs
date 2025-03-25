@@ -50,8 +50,7 @@ public class RewardsService : IRewardsService
         foreach(var visitedLocation in userLocations)
         {
             var nearbyAttractions = attractions//new
-                .Where(attraction => NearAttraction(visitedLocation, attraction)) // only get interesting attractions
-                .ToList();
+                .Where(attraction => NearAttraction(visitedLocation, attraction)); // only get interesting attractions
 
             foreach (var attraction in nearbyAttractions)
             {
